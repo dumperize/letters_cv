@@ -36,12 +36,12 @@ def preprocessing_fun(img):
     
 #     img = cv2.copyMakeBorder(rect,top,bottom,right,left,cv2.BORDER_CONSTANT,value=255)
     img = cv2.copyMakeBorder(rect,5,5,5,5,cv2.BORDER_CONSTANT,value=255)
-    img = cv2.resize(img, (80,80), interpolation = cv2.INTER_NEAREST)
+    img = cv2.resize(img, (70,70), interpolation = cv2.INTER_NEAREST)
 #     img = cv2.convertScaleAbs(img, alpha=0.5, beta=0)
 #     gray = img.astype(np.uint8)
 #     img = cv2.fastNlMeansDenoising(gray,None,5,7,21)
 #     img = cv2.blur(img, (5, 5))
-    img = img.reshape(80,80,1)
+    img = img.reshape(70,70,1)
 #     img = crop_white_space(img)
     
     return img
