@@ -26,8 +26,8 @@ def preprocessing_fun(img):
     kernel = np.ones((1, 1), np.uint8)
     img = cv2.erode(thresh, kernel, iterations = 1)
     
-    dec = 60
-    img = np.where(img < 250, img - dec, img)
+    # dec = 60
+    # img = np.where(img < 250, img - dec, img)
     
     gray = 255*(img < 128).astype(np.uint8)
     coords = cv2.findNonZero(gray)
@@ -68,15 +68,12 @@ def __sendAnswer(url, user_token, data):
 # !!! ЗДЕСЬ ДОЛЖНО БЫТЬ ОБРАЩЕНИЕ К ВАШЕМУ КЛАССИФИКАТОРУ!!!
 # !!! ВЫ МОЖЕТЕ ПЕРЕДАВАТЬ НЕ ОТДЕЛЬНЫЕ ИЗОБРАЖЕНИЯ (как здесь), а СРАЗУ ВСЮ ПОРЦИЮ
 # !!! ГЛАВНОЕ, ЧТОБЫ ВЕРНУЛИСЬ МЕТКИ ДЛЯ КАЖДОГО ИЗОБРАЖЕНИЯ
-def predict(img):
-    model = model = load_model('weight/20-epoch')
-    print(model.summary())
+def predict(img, model):
     img = preprocessing_fun(np.array(img))
-    print(img.shape)
-    prediction = model.predict(img)
-    print(prediction)
-    labels = ['а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ы', 'ъ', 'э', 'ю', 'я']
+    prediction = model.predict(np.array([img]))
+    labels = ['а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё']
     ind = np.argmax(prediction)
+    # print(labels[ind])
     return labels[ind]
 
 
@@ -93,16 +90,18 @@ while True:
         data = jsn["response"]["data"]  # извлекаем данные из словаря
         # классифицируем изображения - формируем словарь меток predicted_labels
         predicted_labels = {}
+        model = load_model('weight/20-epoch')
         
         for hash in data:
             img = base64.b64decode(data[hash])
             img = Image.open(io.BytesIO(img))
             # img = np.asarray(img) # тензор размерностью (128, 128, 3)
-            predicted_label = predict(img)
+            predicted_label = predict(img, model)
             predicted_labels[hash] = predicted_label
 
+        print('hey')
         # преобразуем словарь с метками в JSON и отправляем ответ серверу
-        # jsn = __sendAnswer(send_url, user_token, predicted_labels)
+        jsn = __sendAnswer(send_url, user_token, predicted_labels)
 
         if jsn == None: # проверка успешности
             print("ERROR")
