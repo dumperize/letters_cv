@@ -5,36 +5,15 @@ import io
 import numpy as np
 from PIL import Image
 from keras.models import load_model
+from prepare_img import preprocessing_fun
 import cv2
 
-IMAGE_SHAPE = (70,70)
-def preprocessing_fun(img):
+
+def preprocessing(img):
     img = img.astype(np.uint8)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.uint8)
+    return preprocessing_fun(img)
     
-    border = 160
-        
-    ret,thresh = cv2.threshold(img,border,255,cv2.THRESH_BINARY)
-    kernel = np.ones((5, 5), np.uint8)
-    erode = cv2.erode(thresh, kernel, iterations = 2)
-    img = cv2.bitwise_or(img, erode)
-    
-
-    gray = 255*(img < border).astype(np.uint8)
-    coords = cv2.findNonZero(gray)
-    x, y, w, h = cv2.boundingRect(coords)
-    rect = img[y:y+h, x:x+w]
-    
-    img = cv2.copyMakeBorder(rect,1,1,1,1,cv2.BORDER_CONSTANT,value=255)
-    img = cv2.resize(img, IMAGE_SHAPE, interpolation = cv2.INTER_NEAREST)
-    
-
-    img = np.where(img > 80, img - 70, img)
-    img = np.where(img < 0, 0, img)
-    img = img.reshape(*IMAGE_SHAPE,1)
-    
-    return img
-
 # ФУНКЦИИ ПОЛУЧЕНИЯ И ОТПРАВКИ ДАННЫХ =========================================================================
 
 # получить от сервера данные вида  { "response" : { "data" : { hash : img, ... } }, "error" : error, "code" : code }
@@ -79,10 +58,10 @@ while True:
     jsn = __getData(get_url, user_token) # запрашиываем данные у сервера и читаем из JSON
     if jsn != None:
 
-        file1 = open('json/json__' + str(k) + '.json', "w")
-        data = json.dumps(jsn, ensure_ascii=False)
-        file1.write(data)
-        file1.close()
+        # file1 = open('json/json__' + str(k) + '.json', "w")
+        # data = json.dumps(jsn, ensure_ascii=False)
+        # file1.write(data)
+        # file1.close()
         k = k + 1
 
         data = jsn["response"]["data"]  # извлекаем данные из словаря
@@ -97,7 +76,6 @@ while True:
             predicted_label = predict(img, model)
             predicted_labels[hash] = predicted_label
 
-        print('hey')
         # преобразуем словарь с метками в JSON и отправляем ответ серверу
         jsn = __sendAnswer(send_url, user_token, predicted_labels)
 
